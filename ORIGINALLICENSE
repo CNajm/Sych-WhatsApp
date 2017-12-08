@@ -1,4 +1,7 @@
 THIS LICENSE COVERS ALL CODE FOUND UP TO COMMIT cc1a2929b991ec036d018bf3e57b3633b9b3b8e8 .
+The APACHE 2 and MIT licenses differ very little, the decision to swap to MIT is for simplicity and posterity. 
+Original author's code attribution is respected in ORIGINALLICENSE and given credit where credit is due.
+
 
                                  Apache License
                            Version 2.0, January 2004
