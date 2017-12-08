@@ -1,14 +1,8 @@
-﻿# SWAMI KARUPPASWAMI THUNNAI
-
-# ============================================================
-# Simple yet Hackable! WhatsApp API [UNOFFICIAL] for Python3
-# Note: The author gives permission to use it under Apache 2.0
-# Special Thanks To: alecxe, For reviewing my code!
-# ============================================================
-
-import time
+﻿import time
 import datetime as dt
 import json
+import logging
+import random
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -16,46 +10,85 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
-       
+
+logging.basicConfig(level=logging.INFO)# Set up logger. This lets us switch console outputs on and off easily rather than have many print statements
+
+
+class Message:
+    """
+    Represents a message object
+    """
+    def __init__(self, metadata, content):
+        self.in_or_out = ""
+        self.status = "" # TODO: Return metadata Sent/Received/Read(OneCheck/TwoGreyChecks/TwoBlueChecks) from class="status-icon" div
+        self.metadata = metadata # TODO: Time sent, sender.
+        self.content = content
+
+
+
+
 
 class WhatsApp:
     """
-    This class is used to interact with your whatsapp [UNOFFICIAL API]
+    This class is used to interact with whatsapp web
     """
-    emoji = {}  # This dict will contain all emojies needed for chatting
-    browser = webdriver.Chrome()  # we are using chrome as our webbrowser
+    emoji = {}  # This dict will contain all emojis needed for chatting
+    browser = webdriver.Chrome(executable_path="chromedriver.exe") # we are using chrome as our webbrowser
     timeout = 10  # The timeout is set for about ten seconds
-    
+
     # This constructor will load all the emojies present in the json file and it will initialize the webdriver
     def __init__(self, wait, screenshot=None):
         self.browser.get("https://web.whatsapp.com/")
         # emoji.json is a json file which contains all the emojis
         with open("emoji.json") as emojies:
             self.emoji = json.load(emojies)  # This will load the emojies present in the json file into the dict
-        WebDriverWait(self.browser,wait).until(EC.presence_of_element_located(
-            (By.CLASS_NAME, "input-search")))
+        WebDriverWait(self.browser,wait).until(EC.presence_of_element_located((By.ID, "input-chatlist-search")))
         if screenshot is not None:
             self.browser.save_screenshot(screenshot)  # This will save the screenshot to the specified file location
-        
+
     # This method is used to send the message to the individual person or a group
     # will return true if the message has been sent, false else
-    def send_message(self, name, message):
+    def send_message(self, name, message, prefix=None):
         message = self.emojify(message)  # this will emojify all the emoji which is present as the text in string
-        search = self.browser.find_element_by_class_name("input-search")
-        search.send_keys(name+Keys.ENTER)  # we will send the name to the input key box
+        if prefix:
+            message = prefix + message
+        search = self.browser.find_element_by_id("input-chatlist-search")
+        search.send_keys(name)  # we will send the name to the input key box
+        time.sleep(random.uniform(0.3, 0.8)) # Artificial human delay
+        search.send_keys(Keys.ENTER)
         current_time = time.time()
         try:
             send_msg = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
-                (By.CLASS_NAME, "input")))
-            send_msg.send_keys(message+Keys.ENTER)  # send the message
+                 (By.CLASS_NAME, "input-container"))) # Grab input box
+            chatHeader = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "header.pane-chat-header > div.chat-body > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)")))
+            assert name == chatHeader.get_attribute("title") # Make sure current chat name is the same as receipient name
+
+            time.sleep(random.uniform(0.7, 1.3))
+            send_msg.send_keys(message+Keys.ENTER) # send the message
+            logging.info("Sent to " + format(chatHeader.get_attribute("title")))
+            time.sleep(random.uniform(0.3, 0.8))
             return True
+
         except TimeoutException:
-            raise TimeoutError("Your request has been timed out! Try overriding timeout!")
+            raise TimeoutError("Request has been timed out!")
         except NoSuchElementException:
             return False
-        except Exception:
+        except Exception as e:
+            print(e)
             return False
-                
+
+    def get_message(self):
+        msgPaneBody = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
+             (By.CLASS_NAME, "pane-body")))
+        msgs = self.browser.find_elements(By.XPATH, "//div[@class='message']")
+        print(msgs)
+        return # Paused here
+
+    #
+    # Below code has not been updated yet and may not work. It will be in the near future.
+    #
+
     # This method will count the no of participants for the group name provided
     def participants_for_group(self, group_name):
         search = self.browser.find_element_by_class_name("input-search")
@@ -86,13 +119,13 @@ class WhatsApp:
             new_time = dt.datetime.now()
             elapsed_time = (new_time - current_time).seconds
             if elapsed_time > self.timeout:
-                return "NONE"             
-            
+                return "NONE"
+
     # This method is used to get the main page
     def goto_main(self):
         self.browser.get("https://web.whatsapp.com/")
-    
-    # get the status message of a person 
+
+    # get the status message of a person
     # TimeOut is approximately set to 10 seconds
     def get_status(self, name):
         search = self.browser.find_element_by_class_name("input-search")
@@ -125,8 +158,8 @@ class WhatsApp:
         except NoSuchElementException:
             return "None"
         except Exception:
-            return "None"        
-    
+            return "None"
+
     # to get the last seen of the person
     def get_last_seen(self, name, timeout=10):
         search = self.browser.find_element_by_class_name("input-search")
@@ -150,7 +183,7 @@ class WhatsApp:
             return "None"
         except Exception:
             return "None"
-     
+
     # This method does not care about anything, it sends message to the currently active chat
     # you can use this method to recursively send the messages to the same person
     def send_blind_message(self, message):
@@ -162,25 +195,21 @@ class WhatsApp:
         except selenium.common.exceptions.NoSuchElementException:
             return "Unable to Locate the element"
         except Exception as e:
-            return False    
-     
+            return False
+
     # override the timeout
     def override_timeout(self, new_timeout):
         self.timeout = new_timeout
-    
+
     # This method is used to emojify all the text emoji's present in the message
     def emojify(self,message):
         for emoji in self.emoji:
             message = message.replace(emoji,self.emoji[emoji])
         return message
-    
+
     # This method is used to quit the browser
     def quit(self):
         self.browser.quit()
-    
-        
-        
-    
-        
 
-
+if __name__ == "__main__":
+    pass
