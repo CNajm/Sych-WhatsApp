@@ -3,6 +3,7 @@ import datetime as dt
 import json
 import logging
 import random
+from dateutil.parser import parse
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -13,24 +14,35 @@ from selenium.common.exceptions import TimeoutException
 
 logging.basicConfig(level=logging.INFO)# Set up logger. This lets us switch console outputs on and off easily rather than have many print statements
 
-
 class Message:
     """
     Represents a message object
     """
-    def __init__(self, metadata, content):
+    def __init__(self, date, sender, content):
         self.in_or_out = ""
         self.status = "" # TODO: Return metadata Sent/Received/Read(OneCheck/TwoGreyChecks/TwoBlueChecks) from class="status-icon" div
-        self.metadata = metadata # TODO: Time sent, sender.
+        self.date = date
+        self.sender = sender
         self.content = content
 
+        self.hashed = (self.date, self.sender, self.content)
+    def __hash__(self):
+        return hash(self.hashed)
 
+    def __eq__(self, other):
+        if not isinstance(other, Message):
+            # only equality checks to other Message instances supported
+            return NotImplemented
+        return self.hashed == other.hashed
+
+        # def __repr__(self):
+        #     return '<message({!r})>'.format(self.hashed)
 
 
 
 class WhatsApp:
     """
-    This class is used to interact with whatsapp web
+    Main class used to interact with whatsapp web
     """
     emoji = {}  # This dict will contain all emojis needed for chatting
     browser = webdriver.Chrome(executable_path="chromedriver.exe") # we are using chrome as our webbrowser
@@ -48,42 +60,117 @@ class WhatsApp:
 
     # This method is used to send the message to the individual person or a group
     # will return true if the message has been sent, false else
-    def send_message(self, name, message, prefix=None):
-        message = self.emojify(message)  # this will emojify all the emoji which is present as the text in string
-        if prefix:
-            message = prefix + message
+
+    def navigate(self, name):
+        try:
+            chatHeader = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "header.pane-chat-header > div.chat-body > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)")))
+            assert name == chatHeader.get_attribute("title")
+        except:
+            pass
+        else:
+            return chatHeader
         search = self.browser.find_element_by_id("input-chatlist-search")
         search.send_keys(name)  # we will send the name to the input key box
-        time.sleep(random.uniform(0.3, 0.8)) # Artificial human delay
+        time.sleep(random.uniform(0.3, 0.8)) # Artificial, humanizing delay
         search.send_keys(Keys.ENTER)
         current_time = time.time()
         try:
-            send_msg = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
-                 (By.CLASS_NAME, "input-container"))) # Grab input box
             chatHeader = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "header.pane-chat-header > div.chat-body > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)")))
             assert name == chatHeader.get_attribute("title") # Make sure current chat name is the same as receipient name
 
-            time.sleep(random.uniform(0.7, 1.3))
-            send_msg.send_keys(message+Keys.ENTER) # send the message
-            logging.info("Sent to " + format(chatHeader.get_attribute("title")))
-            time.sleep(random.uniform(0.3, 0.8))
-            return True
-
         except TimeoutException:
             raise TimeoutError("Request has been timed out!")
+            return False
         except NoSuchElementException:
             return False
         except Exception as e:
             print(e)
             return False
 
-    def get_message(self):
+        else:
+            return chatHeader
+
+    def send_message(self, name, message, prefix=None):
+        """
+        Send message by contact/group name
+        Returns
+            Bool : Success Status
+        """
+        message = self.emojify(message)  # emojify all emoji present as text in string
+        if prefix:
+            message = prefix + message
+
+        chatHeader = self.navigate(name)
+        send_msg = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
+            (By.CLASS_NAME, "input-container"))) # Grab input box
+        #     chatHeader = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
+        #         (By.CSS_SELECTOR, "header.pane-chat-header > div.chat-body > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)")))
+        #     assert name == chatHeader.get_attribute("title") # Make sure current chat name is the same as receipient name
+
+        time.sleep(random.uniform(0.7, 1.3))
+        send_msg.send_keys(message+Keys.ENTER) # send the message
+        logging.info("Sent to " + format(chatHeader.get_attribute("title")))
+        time.sleep(random.uniform(0.3, 0.8))
+        return True
+
+        # except TimeoutException:
+        #     raise TimeoutError("Request has been timed out!")
+        #     return False
+        # except NoSuchElementException:
+        #     return False
+        # except Exception as e:
+        #     print(e)
+        #     return False
+
+    def get_message(self, name, limit):
+        """
+        Get messages by contact/group name
+
+        Params
+            name  : Contact/Group name to return messages from
+            limit : Maximum number of messages to return
+
+        Returns
+            if successful
+                Message : Message object containing data
+            if unsuccessful
+                Bool : False
+        """
+        self.navigate(name)
+        #time.sleep(4)
         msgPaneBody = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
-             (By.CLASS_NAME, "pane-body")))
-        msgs = self.browser.find_elements(By.XPATH, "//div[@class='message']")
-        print(msgs)
-        return # Paused here
+             (By.CLASS_NAME, "pane-chat-msgs")))
+        msgBody = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
+             (By.CLASS_NAME, "msg")))
+        try:
+            msgs = self.browser.find_elements(By.CSS_SELECTOR, "div.msg > div.message-chat") # > div:nth-child(1) > div:nth-child(1) > div.copyable-text")
+            msgs.reverse() # Get latest msgs
+            msgList = []
+            for count, m in enumerate(msgs):
+                if count >= limit:
+                    break
+
+                content = msgs[count].find_element(By.CSS_SELECTOR, "div.copyable-text")
+                #print(content.text)
+                #print(content.get_attribute('data-pre-plain-text'))
+                metaC = content.get_attribute('data-pre-plain-text').strip().split(']')
+                metaDate = parse(metaC[0].replace('[',''))
+                metaSender = metaC[1].strip().replace(':','')
+                msgList.append(Message(metaDate, metaSender, content.text))
+
+        except Exception as e:
+            raise(e)
+            return False
+        else:
+            return msgList
+            # return {
+            #         'success' : True,
+            #         'date'    : metaDate,
+            #         'sender'  : metaSender,
+            #         'text'    : content.text
+            #         }
 
     #
     # Below code has not been updated yet and may not work. It will be in the near future.
@@ -204,7 +291,7 @@ class WhatsApp:
     # This method is used to emojify all the text emoji's present in the message
     def emojify(self,message):
         for emoji in self.emoji:
-            message = message.replace(emoji,self.emoji[emoji])
+            message = message.replace(emoji, self.emoji[emoji])
         return message
 
     # This method is used to quit the browser
