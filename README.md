@@ -1,17 +1,20 @@
-# Simple-Yet-Hackable-WhatsApp-API  
-  
+# SYCH WhatsApp
+
 [![license](https://img.shields.io/github/license/CNajm/Simple-Yet-Hackable-WhatsApp-api.svg)](https://github.com/CNajm/Simple-Yet-Hackable-WhatsApp-api/)
 [![GitHub repo size in bytes](https://img.shields.io/github/repo-size/CNajm/Simple-Yet-Hackable-WhatsApp-api.svg)](https://github.com/CNajm/Simple-Yet-Hackable-WhatsApp-api)
 [![GitHub last commit](https://img.shields.io/github/last-commit/CNajm/Simple-Yet-Hackable-WhatsApp-api.svg)](https://github.com/CNajm/Simple-Yet-Hackable-WhatsApp-api/)
 [![GitHub issues](https://img.shields.io/github/issues/CNajm/Simple-Yet-Hackable-WhatsApp-api.svg)](https://github.com/CNajm/Simple-Yet-Hackable-WhatsApp-api/)
-  
+
 ## About
-This is a reverse engineered API hook for the [WhatsApp](https://www.whatsapp.com) mobile messenger made using Python3.   
+This is a reverse-engineered hook for the [WhatsApp](https://www.whatsapp.com) mobile messenger made using Python3.
 
 ## How
 We use [Selenium](http://www.seleniumhq.org) to crawl and extract information from the WhatsApp-Web interface while maintaining a degree of regular human behavior. This live data and metadata can be used to create helpful bots or assistants without compromising server resources or inconveniencing any end-users, but rather improving their overall experience.  
 
 Please submit any bugs or suggestions to the Issues tab found above.  
+
+## Examples
+The following use the library core directly, see source for a chatbot implementation example.
 
 **Sending a message with an emoji:**
 

@@ -12,7 +12,9 @@ def SearchVid(search):
         href = i.find('a', href=True)
         x = href.text,  "https://www.youtube.com"+href['href']
         #print(x)
-        vids.append(x)
+        if not 'https://googleads.g.doubleclick.net/‌' in href['href']:
+            vids.append(x)
+    #print(vids)
     return vids
 
 #print("What are you looking for?")
