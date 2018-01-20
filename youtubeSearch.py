@@ -11,12 +11,8 @@ def SearchVid(search):
     for i in divs:
         href = i.find('a', href=True)
         x = href.text,  "https://www.youtube.com"+href['href']
-        #print(x)
-        if not 'https://googleads.g.doubleclick.net/‌' in href['href']:
+
+        if not 'googleads.g.doubleclick.net‌' in href['href'] and not '&adurl=' in href['href']:
             vids.append(x)
     #print(vids)
     return vids
-
-#print("What are you looking for?")
-#SearchString = input()
-#print(SearchVid(SearchString.replace(" ", "%20")))

@@ -35,51 +35,96 @@ class Message:
             return NotImplemented
         return self.hashed == other.hashed
 
-        # def __repr__(self):
-        #     return '<message({!r})>'.format(self.hashed)
-
-
-
 class WhatsApp:
     """
     Main class used to interact with whatsapp web
     """
     emoji = {}  # This dict will contain all emojis needed for chatting
-    #browser = webdriver.Chrome(executable_path="chromedriver.exe") # we are using chrome as our webbrowser
     browser = webdriver.Chrome()
     timeout = 10  # The timeout is set for about ten seconds
 
     # This constructor will load all the emojies present in the json file and it will initialize the webdriver
     def __init__(self, wait, screenshot=None):
+        # Navigate to web interface on load
         self.browser.get("https://web.whatsapp.com/")
+
         # emoji.json is a json file which contains all the emojis
         with open("emoji.json") as emojies:
             self.emoji = json.load(emojies)  # This will load the emojies present in the json file into the dict
+
         WebDriverWait(self.browser,wait).until(EC.presence_of_element_located((By.ID, "input-chatlist-search")))
+
         if screenshot is not None:
             self.browser.save_screenshot(screenshot)  # This will save the screenshot to the specified file location
 
-    # This method is used to send the message to the individual person or a group
-    # will return true if the message has been sent, false else
-
     def navigate(self, name):
+        """
+        Switch to contact/group chat by name.
+        Checks if it is already there first.
+
+        Params
+            name => str: Contact/Group name to switch focus to.
+        Returns
+            selenium_element : Header element containing name of chat.
+        """
         try:
             chatHeader = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "header.pane-chat-header > div.chat-body > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)")))
-            assert name == chatHeader.get_attribute("title")
-        except:
+
+            assert name == chatHeader.get_attribute("title") # Check if current chat title equals to the target name.
+        except: # If it doesn't find a chat header then it probably means it's not focused on a chat or in the wrong chat, proceed.
             pass
         else:
             return chatHeader
-        search = self.browser.find_element_by_id("input-chatlist-search")
+
+        search = self.browser.find_element_by_id("input-chatlist-search") # contact search input
         search.send_keys(name)  # we will send the name to the input key box
         time.sleep(random.uniform(0.3, 0.8)) # Artificial, humanizing delay
         search.send_keys(Keys.ENTER)
-        current_time = time.time()
+
         try:
             chatHeader = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "header.pane-chat-header > div.chat-body > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)")))
-            assert name == chatHeader.get_attribute("title") # Make sure current chat name is the same as receipient name
+
+            assert name == chatHeader.get_attribute("title") # Make sure the name of the chat found is the same as receipient name
+
+        except TimeoutException:
+            raise TimeoutError("Request has been timed out!")
+            return False
+        except NoSuchElementException:
+            return False
+        except Exception as e:
+            print(e)
+            return False
+
+        else: # Success,
+            return chatHeader
+
+    def send_message(self, name, message, prefix=None):
+        """
+        Send message by contact/group name
+
+        Params
+            name    => str : Contact/Group name to send the message to.
+            message => str : message to send.
+            prefix  => str : string to prepend to message like bot identifier.
+
+        Returns
+            Bool : Success Status
+        """
+        message = self.emojify(message)  # emojify all emoji present as text in string
+        if prefix:
+            message = prefix + message
+
+        chatHeader = self.navigate(name)
+        try:
+            send_msg = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
+                (By.CLASS_NAME, "input-container"))) # Grab input box
+
+            time.sleep(random.uniform(0.7, 1.3))
+            send_msg.send_keys(message+Keys.ENTER) # send the message
+            logging.info("Sent to " + format(chatHeader.get_attribute("title")))
+            time.sleep(random.uniform(0.3, 0.8))
 
         except TimeoutException:
             raise TimeoutError("Request has been timed out!")
@@ -91,90 +136,58 @@ class WhatsApp:
             return False
 
         else:
-            return chatHeader
+            return True
 
-    def send_message(self, name, message, prefix=None):
-        """
-        Send message by contact/group name
-        Returns
-            Bool : Success Status
-        """
-        message = self.emojify(message)  # emojify all emoji present as text in string
-        if prefix:
-            message = prefix + message
 
-        chatHeader = self.navigate(name)
-        send_msg = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
-            (By.CLASS_NAME, "input-container"))) # Grab input box
-        #     chatHeader = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
-        #         (By.CSS_SELECTOR, "header.pane-chat-header > div.chat-body > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)")))
-        #     assert name == chatHeader.get_attribute("title") # Make sure current chat name is the same as receipient name
-
-        time.sleep(random.uniform(0.7, 1.3))
-        send_msg.send_keys(message+Keys.ENTER) # send the message
-        logging.info("Sent to " + format(chatHeader.get_attribute("title")))
-        time.sleep(random.uniform(0.3, 0.8))
-        return True
-
-        # except TimeoutException:
-        #     raise TimeoutError("Request has been timed out!")
-        #     return False
-        # except NoSuchElementException:
-        #     return False
-        # except Exception as e:
-        #     print(e)
-        #     return False
-
-    def get_message(self, name, limit):
+    def get_message(self, name, limit=1):
         """
         Get messages by contact/group name
 
         Params
-            name  : Contact/Group name to return messages from
-            limit : Maximum number of messages to return
+            name  => str : Contact/Group name to return messages from
+            limit => int : Maximum number of messages to return
 
         Returns
             if successful
-                Message : Message object containing data
+                Message => MessageObject: Message object containing data
             if unsuccessful
                 Bool : False
         """
         self.navigate(name)
         #time.sleep(4)
-        msgPaneBody = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
+
+        # Wait for these 2 elements to load in.
+        WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
              (By.CLASS_NAME, "pane-chat-msgs")))
-        msgBody = WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
+        WebDriverWait(self.browser,self.timeout).until(EC.presence_of_element_located(
              (By.CLASS_NAME, "msg")))
+
         try:
-            msgs = self.browser.find_elements(By.CSS_SELECTOR, "div.msg > div.message-chat") # > div:nth-child(1) > div:nth-child(1) > div.copyable-text")
-            msgs.reverse() # Get latest msgs
+            msgs = self.browser.find_elements(By.CSS_SELECTOR, "div.msg > div.message-chat") # get all messages
+            msgs.reverse() # We want latest msgs, they are sorted by oldest
             msgList = []
             for count, m in enumerate(msgs):
                 if count >= limit:
                     break
 
+                # Get and format message content and metadata
                 content = msgs[count].find_element(By.CSS_SELECTOR, "div.copyable-text")
-                #print(content.text)
-                #print(content.get_attribute('data-pre-plain-text'))
+
                 metaC = content.get_attribute('data-pre-plain-text').strip().split(']')
                 metaDate = parse(metaC[0].replace('[',''))
                 metaSender = metaC[1].strip().replace(':','')
+
                 msgList.append(Message(metaDate, metaSender, content.text))
 
         except Exception as e:
             raise(e)
             return False
+
         else:
             return msgList
-            # return {
-            #         'success' : True,
-            #         'date'    : metaDate,
-            #         'sender'  : metaSender,
-            #         'text'    : content.text
-            #         }
 
     #
-    # Below code has not been updated yet and may not work. It will be in the near future.
+    # Below legacy code has not been updated yet and may not work. It will be in the near future.
     #
 
     # This method will count the no of participants for the group name provided
@@ -298,6 +311,3 @@ class WhatsApp:
     # This method is used to quit the browser
     def quit(self):
         self.browser.quit()
-
-if __name__ == "__main__":
-    pass
