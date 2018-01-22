@@ -16,7 +16,11 @@ def SearchWiki(query):
     endpoint = "https://en.wikipedia.org/w/api.php?action=opensearch&search={}&limit=1&namespace=0&redirects=resolve"
     search = requests.get(endpoint.format(query.replace(" ", "%20")))
     search.raise_for_status()
-    data = json.loads(search.text)
+    try:
+        data = json.loads(search.text)
+    except:
+        print("invalid data")
+        return False
     try:
         return {
         "inputquery"  :    data[0],

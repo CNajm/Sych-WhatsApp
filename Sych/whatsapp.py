@@ -26,15 +26,15 @@ class Message:
         self.sender = sender
         self.content = content
 
-        self.hashed = (self.date, self.sender, self.content)
+        self.hasher = (self.date, self.sender, self.content)
     def __hash__(self):
-        return hash(self.hashed)
+        return hash(self.hasher)
 
     def __eq__(self, other):
         if not isinstance(other, Message):
             # only equality checks to other Message instances supported
             return NotImplemented
-        return self.hashed == other.hashed
+        return self.hasher == other.hasher
 
 class WhatsApp:
     """
@@ -126,25 +126,16 @@ class WhatsApp:
 
             # This splits multiline messages (denoted with \n) and formats them correctly
             message_content = message.split('\n')
-            actionqueue = ""
             for count, line in enumerate(message_content):
                 if count == len(message_content) - 1: # If this is the last element of the list
                         time.sleep(random.uniform(0.3, 0.8))
-                        send_msg.send_keys(line+Keys.ENTER)
-                        # actionqueue.send_keys(line+Keys.ENTER)
+                        send_msg.send_keys(line+Keys.ENTER) # Send the last line and press enter to send the message
                 else:
                     time.sleep(random.uniform(0.3, 0.8))
                     send_msg.send_keys(line)
-                    # actionqueue.send_keys(line)
-                    # actionqueue.pause(random.uniform(0.5, 1.5))
-                    # actionqueue.send_keys(Keys.SHIFT+Keys.ENTER)
-                    send_msg.send_keys(Keys.SHIFT+Keys.ENTER)
+                    send_msg.send_keys(Keys.SHIFT+Keys.ENTER) # Shift-enter inserts a new line without sending the message
 
-
-                #ActionChains(self.browser).send_keys(Keys.SHIFT+Keys.ENTER).perform()
-            #send_msg.send_keys(Keys.ENTER) # send the message
             logging.info("Sent to " + format(chatHeader.get_attribute("title")))
-            #time.sleep(random.uniform(0.3, 0.8))
 
         except TimeoutException:
             raise TimeoutError("Request has been timed out!")

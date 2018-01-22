@@ -23,6 +23,7 @@ class bot:
     def __init__(self, whatsappInstance):
         self.client = whatsappInstance
         self.history = deque(maxlen=20)
+        # TODO: make prefix a class attribute instead of passing it with every send_message call
 
     def handle_command(self, message):
         """
@@ -80,11 +81,9 @@ class bot:
             Example
                 %yt titanic theme song
             """
-
-            #url = message.content.lower()[len(cmdsymbol+"yt"):].strip() # Get everything after the command invokation
             url = get_context("yt")
             try:
-                vid = ext.youtubeSearch.SearchVid(url)[0] # Make query string http compatible and search
+                vid = ext.youtubeSearch.SearchVid(url)[0]
                 with lock:
                     self.client.send_message(group, "```{}```\n{}".format(vid[0], vid[1]), prefix)
             except Exception as e:
@@ -145,7 +144,7 @@ def message_checker():
             print("typeerror")
             pass
 
-        message_history = list(set(message_history)) # Convert list to set to remove duplicate Message objects. See Message class for hashing specifics.
+        message_history = deque(list(set(message_history)), maxlen=20) # Convert list to set to remove duplicate Message objects. See Message class for hashing specifics.
         time.sleep(2)
 
 def queue_handler():
@@ -162,5 +161,5 @@ qh = threading.Thread(target=queue_handler)
 mc.start()
 qh.start()
 while True:
-    for m in message_history:
+    for m in list(message_history):
         q.put(b.handle_command(m))
