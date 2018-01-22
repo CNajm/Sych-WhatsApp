@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-SYCH WhatsApp EXT
+Sych WhatsApp EXT
 -----------------
 
-Extensions to SYCH live here
+Extensions live here
 """

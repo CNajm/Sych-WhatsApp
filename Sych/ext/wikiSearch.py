@@ -1,6 +1,5 @@
 import requests
 import json
-from itertools import chain
 """
 Searches wikipedia and returns dictionary of data
 

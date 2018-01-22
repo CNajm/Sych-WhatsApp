@@ -1,4 +1,4 @@
-# SYCH WhatsApp
+# Sych WhatsApp
 
 [![license](https://img.shields.io/github/license/CNajm/SYCH-WhatsApp.svg)](https://github.com/CNajm/SYCH-WhatsApp/)
 [![GitHub repo size in bytes](https://img.shields.io/github/repo-size/CNajm/SYCH-WhatsApp.svg)](https://github.com/CNajm/SYCH-WhatsApp)
@@ -51,6 +51,4 @@ result = whatsapp.participants_for_group("group")
 ```
 
 ## License
-Original code licensed to [Visweswaran Nagasivam](https://github.com/VISWESWARAN1998/Simple-Yet-Hackable-WhatsApp-api) under the Apache 2.0 license. See ORIGINALLICENSE.
-
-MIT License
+MIT
