@@ -8,6 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
@@ -122,9 +123,28 @@ class WhatsApp:
                 (By.CLASS_NAME, "input-container"))) # Grab input box
 
             time.sleep(random.uniform(0.7, 1.3))
-            send_msg.send_keys(message+Keys.ENTER) # send the message
+
+            # This splits multiline messages (denoted with \n) and formats them correctly
+            message_content = message.split('\n')
+            actionqueue = ""
+            for count, line in enumerate(message_content):
+                if count == len(message_content) - 1: # If this is the last element of the list
+                        time.sleep(random.uniform(0.3, 0.8))
+                        send_msg.send_keys(line+Keys.ENTER)
+                        # actionqueue.send_keys(line+Keys.ENTER)
+                else:
+                    time.sleep(random.uniform(0.3, 0.8))
+                    send_msg.send_keys(line)
+                    # actionqueue.send_keys(line)
+                    # actionqueue.pause(random.uniform(0.5, 1.5))
+                    # actionqueue.send_keys(Keys.SHIFT+Keys.ENTER)
+                    send_msg.send_keys(Keys.SHIFT+Keys.ENTER)
+
+
+                #ActionChains(self.browser).send_keys(Keys.SHIFT+Keys.ENTER).perform()
+            #send_msg.send_keys(Keys.ENTER) # send the message
             logging.info("Sent to " + format(chatHeader.get_attribute("title")))
-            time.sleep(random.uniform(0.3, 0.8))
+            #time.sleep(random.uniform(0.3, 0.8))
 
         except TimeoutException:
             raise TimeoutError("Request has been timed out!")
@@ -180,7 +200,7 @@ class WhatsApp:
                 msgList.append(Message(metaDate, metaSender, content.text))
 
         except Exception as e:
-            raise(e)
+            logging.warn(e)
             return False
 
         else:

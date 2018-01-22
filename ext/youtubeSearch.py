@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import urllib.request
 
 def SearchVid(search):
-    response = urllib.request.urlopen('https://www.youtube.com/results?search_query='+search)
+    response = urllib.request.urlopen('https://www.youtube.com/results?search_query='+search.replace(" ", "%20"))
 
     soup = BeautifulSoup(response, 'lxml')
     divs = soup.find_all("div", { "class" : "yt-lockup-content"})
