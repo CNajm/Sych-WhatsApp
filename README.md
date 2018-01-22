@@ -1,9 +1,9 @@
 # SYCH WhatsApp
 
-[![license](https://img.shields.io/github/license/CNajm/Simple-Yet-Hackable-WhatsApp-api.svg)](https://github.com/CNajm/Simple-Yet-Hackable-WhatsApp-api/)
-[![GitHub repo size in bytes](https://img.shields.io/github/repo-size/CNajm/Simple-Yet-Hackable-WhatsApp-api.svg)](https://github.com/CNajm/Simple-Yet-Hackable-WhatsApp-api)
-[![GitHub last commit](https://img.shields.io/github/last-commit/CNajm/Simple-Yet-Hackable-WhatsApp-api.svg)](https://github.com/CNajm/Simple-Yet-Hackable-WhatsApp-api/)
-[![GitHub issues](https://img.shields.io/github/issues/CNajm/Simple-Yet-Hackable-WhatsApp-api.svg)](https://github.com/CNajm/Simple-Yet-Hackable-WhatsApp-api/)
+[![license](https://img.shields.io/github/license/CNajm/SYCH-WhatsApp.svg)](https://github.com/CNajm/SYCH-WhatsApp/)
+[![GitHub repo size in bytes](https://img.shields.io/github/repo-size/CNajm/SYCH-WhatsApp.svg)](https://github.com/CNajm/SYCH-WhatsApp)
+[![GitHub last commit](https://img.shields.io/github/last-commit/CNajm/SYCH-WhatsApp.svg)](https://github.com/CNajm/SYCH-WhatsApp/)
+[![GitHub issues](https://img.shields.io/github/issues/CNajm/SYCH-WhatsApp.svg)](https://github.com/CNajm/SYCH-WhatsApp/)
 
 ## About
 This is a reverse-engineered hook for the [WhatsApp](https://www.whatsapp.com) mobile messenger made using Python3.
@@ -14,7 +14,7 @@ We use [Selenium](http://www.seleniumhq.org) to crawl and extract information fr
 Please submit any bugs or suggestions to the Issues tab found above.  
 
 ## Examples
-The following use the library core directly, see source for a chatbot implementation example.
+The following use the library core directly, see source for a chat bot implementation example.
 
 **Sending a message with an emoji:**
 
@@ -24,7 +24,7 @@ whatsapp = WhatsApp(10)
 whatsapp.send_message("Recipient", ":heart: Good!")  
 ```
 **Result:** <br>
-![Image](https://raw.githubusercontent.com/CNajm/Simple-Yet-Hackable-WhatsApp-api/master/Screenshot%20(747).png)
+![Image](https://raw.githubusercontent.com/CNajm/SYCH-WhatsApp/master/Screenshot%20(747).png)
 
 **Getting the status message of a person:**
 
