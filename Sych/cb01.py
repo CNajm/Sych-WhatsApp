@@ -10,8 +10,8 @@ import ext.wikiSearch
 x = whatsapp.WhatsApp(5000)
 
 # This is where we will send and receive messages
-#group = "Test group please ignore"
-group = "Maf2oud since 1990"
+group = "Test group please ignore"
+#group = "Maf2oud since 1990"
 
 prefix = "⚒ Comrade, "
 cmdsymbol = "%"
@@ -23,6 +23,12 @@ class bot:
     def __init__(self, whatsappInstance):
         self.client = whatsappInstance
         self.history = deque(maxlen=20)
+        
+        self.q = queue.Queue()
+        self.lock = threading.Lock()
+        self.check_msgs = True
+        self.message_history = deque(maxlen=20)
+        
         # TODO: make prefix a class attribute instead of passing it with every send_message call
 
     def handle_command(self, message):
@@ -55,13 +61,16 @@ class bot:
             return context
 
 
+        def send_message(to, msg, prefix):
+            with self.lock:
+                self.client.send_message(to, msg, prefix)
+
         if is_command("test"):
             """
             Command
                 Responds with "I'm alive!"
             """
-            with lock:
-                self.client.send_message(group, "I'm alive!", prefix)
+            send_message(group, "I'm alive!", prefix)
 
 
         elif is_command("today"):
@@ -70,8 +79,7 @@ class bot:
                 Responds with today's date + time (12hr format)
             """
             n = datetime.datetime.now().strftime("%A %B %d @ %I:%M %p UTC-8")
-            with lock:
-                self.client.send_message(group, "today is {}".format(n), prefix)
+            send_message(group, "today is {}".format(n), prefix)
 
 
         elif is_command("yt"):
@@ -84,7 +92,7 @@ class bot:
             url = get_context("yt")
             try:
                 vid = ext.youtubeSearch.SearchVid(url)[0]
-                with lock:
+                with self.lock:
                     self.client.send_message(group, "```{}```\n{}".format(vid[0], vid[1]), prefix)
             except Exception as e:
                 print(e)
@@ -108,58 +116,57 @@ class bot:
             else:
                 msgdata = "No results found for _{}_".format(query)
 
-            with lock:
+            with self.lock:
                 self.client.send_message(group, msgdata, prefix)
+                
+                
+                
+                
+    # TODO: Figure out which sleep-deprived 4 AM coding session synthesized this event loop
+    def message_checker(self):
+        """
+        Since there's no way to detect new messages, we make our own:
+    
+        Updates message_history with messages.
+        Message Detection step by step:
+            1. Grab latest messages up to limit (get_message second param. Think of limit as the look-behind range.)
+            2. Append them to list of all messages
+            3. Eliminate duplicate/non-unique messages by converting to a set() and back.
+    
+        This allows us to detect new messages by monitoring message_history for new entries.
+        """
+        while self.check_msgs:
+            with self.lock:
+                check = x.get_message(group, 3)
+            try:
+                for m in check:
+                    self.message_history.append(m)
+            except TypeError: # This happens when getting the messages fails while they are still loading
+                print("typeerror")
+                pass
+    
+            self.message_history = deque(list(set(self.message_history)), maxlen=20) # Convert list to set to remove duplicate Message objects. See Message class for hashing specifics.
+            time.sleep(2)
+    
+    def queue_handler(self):
+        while True:
+            item = self.q.get()
+            if item is None:
+                break
+            func = item[0]
+            args = item[1:]
+            func(*args) # call func with args under thread lock
+            
+    def run(self):
+        mc = threading.Thread(target=self.message_checker)
+        qh = threading.Thread(target=self.queue_handler)
+        mc.start()
+        qh.start()
+        while True:
+            for m in list(self.message_history).reverse(): # Pause here
+                self.q.put(self.handle_command(m))        
 
 
-b = bot(x)
-q = queue.Queue()
-lock = threading.Lock()
-
-check_msgs = True
-message_history = deque(maxlen=20)
+b = bot(x).run()
 
 
-# TODO: Figure out which sleep-deprived 4 AM coding session synthesized this event loop
-def message_checker():
-    """
-    Since there's no way to detect new messages, we make our own:
-
-    Updates message_history with messages.
-    Message Detection step by step:
-        1. Grab latest messages up to limit (get_message second param. Think of limit as the look-behind range.)
-        2. Append them to list of all messages
-        3. Eliminate duplicate/non-unique messages by converting to a set() and back.
-
-    This allows us to detect new messages by monitoring message_history for new entries.
-    """
-    global message_history
-    while check_msgs:
-        with lock:
-            check = x.get_message(group, 3)
-        try:
-            for m in check:
-                message_history.append(m)
-        except TypeError: # This happens when getting the messages fails while they are still loading
-            print("typeerror")
-            pass
-
-        message_history = deque(list(set(message_history)), maxlen=20) # Convert list to set to remove duplicate Message objects. See Message class for hashing specifics.
-        time.sleep(2)
-
-def queue_handler():
-    while True:
-        item = q.get()
-        if item is None:
-            break
-        func = item[0]
-        args = item[1:]
-        func(*args) # call func with args under thread lock
-
-mc = threading.Thread(target=message_checker)
-qh = threading.Thread(target=queue_handler)
-mc.start()
-qh.start()
-while True:
-    for m in list(message_history):
-        q.put(b.handle_command(m))
