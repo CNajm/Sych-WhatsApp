@@ -6,12 +6,12 @@
 [![GitHub issues](https://img.shields.io/github/issues/CNajm/SYCH-WhatsApp.svg)](https://github.com/CNajm/SYCH-WhatsApp/)
 
 ## About
-This is a reverse-engineered hook for the [WhatsApp](https://www.whatsapp.com) mobile messenger made using Python3.
+This is a reverse-engineered automation library for the [WhatsApp](https://www.whatsapp.com) mobile messenger designed for ease of use and readability made using Python3.
 
 ## How
-We use [Selenium](http://www.seleniumhq.org) to crawl and extract information from the WhatsApp-Web interface while maintaining a degree of regular human behavior. This live data and metadata can be used to create helpful bots or assistants without compromising server resources or inconveniencing any end-users, but rather improving their overall experience.  
+[Selenium](http://www.seleniumhq.org) is used to crawl and extract information from the WhatsApp-Web interface while maintaining a degree of regular human behavior. This live data and metadata can be used to create helpful bots or assistants without compromising server resources or inconveniencing any end-users, but rather improving their overall experience.
 
-Please submit any bugs or suggestions to the Issues tab found above.  
+This implementation does **not** involve direct http calls to WhatsApp servers.
 
 ## Examples
 The following use the library core directly, see source for a chat bot implementation example.
@@ -50,5 +50,26 @@ whatsapp = WhatsApp(10)
 result = whatsapp.participants_for_group("group")
 ```
 
+## Running
+1. Clone `git clone https://github.com/CNajm/Sych-WhatsApp.git`
+2. Navigate to `cd Sych-WhatsApp`
+3. Install dependencies, make a virtualenv if you wish beforehand `pip install -r requirements.txt`
+4. [Download the chrome webdriver <-- Click](https://sites.google.com/a/chromium.org/chromedriver/)
+5. Extract the chromedriver to the same folder as whatsapp.py `Sych-WhatsApp/Sych`
+
+You can now use the library core as shown in the screenshots above.
+
+To run the bot framework which extends the core:
+1. Do above steps
+2. Edit `cb01.py`
+3. Change the value of `group` to whatever contact/group you wish to run on.
+4. Save and run with `python3 cb01.py`
+
+## Contributions are welcome :heart:
+Fork, make branch and pull request.
+
+[Step by step beginner guide](https://akrabat.com/the-beginners-guide-to-contributing-to-a-github-project/)
+
+Please submit any bugs or suggestions to the Issues tab found above.
 ## License
 MIT
