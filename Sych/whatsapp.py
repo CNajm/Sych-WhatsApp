@@ -46,7 +46,7 @@ class WhatsApp:
     timeout = 10  # The timeout is set for about ten seconds
 
     # This constructor will load all the emojies present in the json file and it will initialize the webdriver
-    
+
     def __init__(self, wait, screenshot=None):
         # Navigate to web interface on load
         self.browser.get("https://web.whatsapp.com/")
@@ -155,30 +155,29 @@ class WhatsApp:
         """
         Wrapper function that sends a message and checks if it has been sent.
         Uses send_blind_message and get_message
-        
+
         Params
             name    => str : same as send_blind_message
             message => str : same as send_blind_message
             prefix  => str : same as send_blind_message
-            retries => int : how many times to retry sending if failed.
+            retries => int : how many times to retry if failed.
         Returns
-            Bool : Success Status         
+            Bool : Success Status
         """
+        # There are more accurate ways to confirm the message being sent as well
         count = 0
         while self.send_blind_message(name, message, prefix):
             if count >= retries:
                 logging.critical("Message sending failed after {} retries".format(retries))
                 return False
-            
+
             logging.info("Confirming message...")
-            #time.sleep(3)
             count += 1
-            for m in self.get_message(name, 5, "sent"):
-                #print(message, "!", m.content.strip())
-                if message in m.content.strip():
+            for m in self.get_message(name, 3, "sent"): # Get the (3) most recent messages sent by us
+                if message in m.content:
                     logging.info("Message confirmed sent!")
                     return True
-        
+
     def get_message(self, name, limit=1, filter_="all"):
         """
         Get messages by contact/group name
@@ -196,7 +195,6 @@ class WhatsApp:
         """
         self.navigate(name)
         #time.sleep(4)
-
         # Wait for these 2 elements to load in.
         WebDriverWait(self.browser, self.timeout).until(EC.presence_of_element_located(
              (By.CLASS_NAME, "pane-chat-msgs")))
@@ -204,11 +202,11 @@ class WhatsApp:
              (By.CLASS_NAME, "msg")))
 
         try:
-            if filter_ == "sent": 
+            if filter_ == "sent":
                 self.msgFilter = "message-out"
-            else: 
+            else:
                 self.msgFilter = "message-chat"
-            
+
             msgs = self.browser.find_elements(By.CSS_SELECTOR, "div.msg > div.{}".format(self.msgFilter)) # get all messages
             msgs.reverse() # We want latest msgs, they are sorted by oldest
             msgList = []

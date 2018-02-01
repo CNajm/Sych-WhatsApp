@@ -10,9 +10,9 @@ import ext.wikiSearch
 x = whatsapp.WhatsApp(5000)
 
 # This is where we will send and receive messages
-#group = "Test group please ignore"
+group = "Test group please ignore"
 #group = "Maf2oud since 1990"
-group = "?this_search_will_fail"
+#group = "?this_search_will_fail"
 
 prefix = "⚒ Comrade, "
 cmdsymbol = "%"
@@ -169,14 +169,4 @@ class bot:
                     self.q.put(self.handle_command(m)) # If message is new, handle it and add it to history so we don't handle it again.
                     self.history.append(m)
 
-#b = bot(x).run()
-print(x.send_message(group, "a", prefix))
-print(x.send_message(group, "as", prefix))
-print(x.send_message(group, "asd", prefix))
-print(x.send_message(group, "asd@", prefix))
-print(x.send_message(group, "asd@#", prefix))
-print(x.send_message(group, "asd@#$", prefix))
-print(x.send_message(group, "asd@#$@", prefix))
-print(x.send_message(group, "asd@#$@e", prefix))
-print(x.send_message(group, "asd@#$@ex", prefix))
-print(x.send_message(group, "asd@#$@exz", prefix))
+b = bot(x).run()
