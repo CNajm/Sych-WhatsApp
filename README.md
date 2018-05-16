@@ -6,15 +6,15 @@
 [![GitHub issues](https://img.shields.io/github/issues/CNajm/SYCH-WhatsApp.svg)](https://github.com/CNajm/SYCH-WhatsApp/)
 
 ## About
-This is a small automation project for the [WhatsApp](https://www.whatsapp.com) mobile messenger designed for ease of use and readability made using Python3.
+Sych is a python library for automating [WhatsApp web](https://www.whatsapp.com).
 
 ## How
-[Selenium](http://www.seleniumhq.org) is used to crawl and extract information from the WhatsApp-Web interface while maintaining a degree of regular human behavior. This live data and metadata can be used to create helpful bots or assistants without compromising server resources or inconveniencing any end-users, but rather improving their overall experience.
+[Selenium.](http://www.seleniumhq.org)
 
-This implementation does **not** involve direct http calls to WhatsApp servers.
+This implementation **does not** involve direct calls to WhatsApp servers, making it safer to use than those that do.
 
 ## Examples
-The following use the library core directly, see source for a chat bot implementation example.
+The following examples call the library core directly, see [cb01.py](https://github.com/CNajm/Sych-WhatsApp/blob/023b99fc5539428a4b7130d6061baeeb8dd2aed3/Sych/cb01.py#L61) for a chat-bot example.
 
 **Sending a message with an emoji:**
 
@@ -26,7 +26,7 @@ whatsapp.send_message("Recipient", ":heart: Good!")
 **Result:** <br>
 ![Image](https://raw.githubusercontent.com/CNajm/SYCH-WhatsApp/master/Screenshot%20(747).png)
 
-**Getting the status message of a person:**
+**Getting a contact's status message**
 
 ```python
 from whatsapp import WhatsApp
@@ -34,7 +34,7 @@ whatsapp = WhatsApp(10)
 print(whatsapp.get_status("Name"))
 ```
 
-**Getting last seen of a person:**
+**Getting a contact's last seen datetime**
 
 ```python
 from whatsapp import WhatsApp
@@ -42,7 +42,7 @@ whatsapp = WhatsApp(10)
 print(whatsapp.get_last_seen("Name"))
 ```
 
-**Getting the no# of participants in the group:**
+**Getting the number of members in a group:**
 
 ```python
 from whatsapp import WhatsApp
@@ -54,19 +54,18 @@ result = whatsapp.participants_for_group("group")
 1. Clone `git clone https://github.com/CNajm/Sych-WhatsApp.git`
 2. Navigate to `cd Sych-WhatsApp`
 3. Install dependencies `pip install -r requirements.txt`
-4. [Download the chrome webdriver <-- Click](https://sites.google.com/a/chromium.org/chromedriver/)
+4. [Download the chrome webdriver](https://sites.google.com/a/chromium.org/chromedriver/)
 5. Extract the chromedriver to `Sych-WhatsApp/Sych`
 
-You can now use the library core as shown in the screenshots above.
+You can now use the library core as shown in the above screenshots.
 
-To run the bot framework which builds upon the core:
+To run the bot framework:
 1. Perform above steps
 2. Edit `cb01.py`: Change the value of `group` to whatever contact/group you wish to listen on.
 3. Run `python3 cb01.py`
 
 ### Contributions
-Make a new branch with your changes and pull request.
-([Step by step beginner guide](https://akrabat.com/the-beginners-guide-to-contributing-to-a-github-project/))
+Branch your changes and pull request.
+([Step by step guide if this is new to you](https://akrabat.com/the-beginners-guide-to-contributing-to-a-github-project/))
 
-
-Please submit any bugs or suggestions to the [Issues tab](https://github.com/CNajm/Sych-WhatsApp/issues) found above.
+Do submit bugs and suggestions to the [Issues tab](https://github.com/CNajm/Sych-WhatsApp/issues), 1 issue = 1 cookie.
