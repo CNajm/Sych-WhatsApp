@@ -80,7 +80,7 @@ class WhatsApp:
         else:
             return chatHeader
 
-        search = self.browser.find_element_by_id("input-chatlist-search") # contact search input
+        search = self.browser.find_element_by_xpath('//*[@id="side"]/div[2]/div/label/input') # contact search input
         search.send_keys(name)  # we will send the name to the input key box
         time.sleep(random.uniform(0.3, 0.8)) # Artificial, humanizing delay
         search.send_keys(Keys.ENTER)
