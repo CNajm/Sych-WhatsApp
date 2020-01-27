@@ -8,6 +8,9 @@
 ## About
 Sych is a python library for automating [WhatsApp web](https://www.whatsapp.com).
 
+**note: this codebase is outdated as of 2020**
+last actual commit may 15, 2018
+
 ## How
 [Selenium.](http://www.seleniumhq.org)
 
